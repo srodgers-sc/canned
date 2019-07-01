@@ -1,0 +1,12 @@
+{
+  "responses": [
+    {
+      "endpoint": "/dummy/ep",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"access_token\":\"token\",\"expires_in\":3600,\"token_type\":\"type\"}"
+    }
+  ]
+}

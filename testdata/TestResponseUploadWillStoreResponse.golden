@@ -1,0 +1,23 @@
+{
+  "responses": [
+    {
+      "endpoint": "/dummy/ep1",
+      "method": "POST",
+      "code": "200",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "{\"access_token\":\"token\",\"expires_in\":3600,\"token_type\":\"type\"}"
+    },
+    {
+      "endpoint":"/dummy/ep2",
+      "method": "GET",
+      "code":"200",
+      "headers":{
+        "Content-Type":"application/xml"
+      },
+      "body":"",
+      "timeout":"10"
+    }
+  ]
+}
