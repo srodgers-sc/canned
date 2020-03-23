@@ -1,4 +1,4 @@
-FROM golang:1.12 as builder
+FROM golang:1.14 as builder
 ENV CANNED_DIR="github.com/canned"
 WORKDIR $GOPATH/src/$CANNED_DIR
 COPY . .

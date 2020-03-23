@@ -1,13 +1,12 @@
 COMPONENT_NAME:=canned
-VERSION=$(shell cat $(CURDIR)/version)
-DOCKER_TAG=$(COMPONENT_NAME):$(VERSION)
+DOCKER_TAG=$(COMPONENT_NAME)
 
 GO111MODULE=on
 export GO111MODULE
 GOFLAGS+=-mod=vendor
 export GOFLAGS
 
-LDFLAGS=-ldflags "-w -s -X main.version=${COMPONENT_VERSION}"
+LDFLAGS=-ldflags "-w -s"
 
 .PHONY: all build docker format lint vendor clean
 
