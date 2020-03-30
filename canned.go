@@ -138,15 +138,20 @@ func storeResponses(b []byte) error {
 }
 
 func loadImages() map[string]string {
-	files, err := ioutil.ReadDir("./canned_images")
+
+	images := make(map[string]string)
+
+	if imgDir == "" {
+		return images
+	}
+
+	files, err := ioutil.ReadDir(imgDir)
 	if err != nil {
 		log.Println("unable to read canned_images directory")
 	}
 
-	images := make(map[string]string)
-
 	for _, f := range files {
-		src, err := os.Open("./canned_images/" + f.Name())
+		src, err := os.Open(imgDir + "/" + f.Name())
 
 		if err != nil {
 			log.Println("unable to read canned_images directory")
@@ -155,6 +160,7 @@ func loadImages() map[string]string {
 		img, _, err := image.Decode(src)
 		if err != nil {
 			log.Println("unable to decode to type image")
+			continue
 		}
 
 		defer src.Close()
@@ -216,13 +222,19 @@ func storeResponsesFromFile(f string) error {
 	return err
 }
 
+var imgDir = ""
+
 func main() {
 	log.Println("Canned")
 
 	port := flag.String("port", ":8888", "service port")
 	responses := flag.String("responses", "", "JSON list of responses")
+	imagesDir := flag.String("images_dir", "", "Directory containing reponse images")
+
 	flag.Parse()
 	log.Printf("Started with args port%s responses:%s\n", *port, *responses)
+
+	imgDir = *imagesDir
 
 	if *responses != "" {
 		err := storeResponsesFromFile(*responses)
