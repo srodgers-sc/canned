@@ -5,14 +5,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/pkg/errors"
+	"image"
+	"image/jpeg"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +32,7 @@ type response struct {
 	Code     string            `json:"code"`
 	Body     string            `json:"body"`
 	Headers  map[string]string `json:"headers"`
+	URI      string            `json:"uri"`
 	Timeout  string            `json:"timeout,omitempty"`
 }
 
@@ -88,6 +93,8 @@ func storeResponses(b []byte) error {
 		return err
 	}
 
+	images := loadImages()
+
 	for _, res := range r.Responses {
 		if res.Code == "" {
 			return errors.New("invalid empty code specified")
@@ -108,6 +115,11 @@ func storeResponses(b []byte) error {
 				return errors.Wrapf(err, "invalid timeout specified %v", res.Timeout)
 			}
 		}
+
+		if res.Body == "" && res.Headers["Content-Type"] == "image/jpeg" {
+			res.Body = images[res.URI]
+		}
+
 		updatedEntry := false
 		for i, v := range cachedResponses {
 			if v.Endpoint == res.Endpoint && v.Method == res.Method && v.Regex == res.Regex {
@@ -123,6 +135,38 @@ func storeResponses(b []byte) error {
 		}
 	}
 	return nil
+}
+
+func loadImages() map[string]string {
+	files, err := ioutil.ReadDir("./canned_images")
+	if err != nil {
+		log.Println("unable to read canned_images directory")
+	}
+
+	images := make(map[string]string)
+
+	for _, f := range files {
+		src, err := os.Open("./canned_images/" + f.Name())
+
+		if err != nil {
+			log.Println("unable to read canned_images directory")
+		}
+
+		img, _, err := image.Decode(src)
+		if err != nil {
+			log.Println("unable to decode to type image")
+		}
+
+		defer src.Close()
+
+		buffer := new(bytes.Buffer)
+		if err := jpeg.Encode(buffer, img, nil); err != nil {
+			log.Println("unable to write image to buffer")
+		}
+		images[f.Name()] = buffer.String()
+	}
+
+	return images
 }
 
 func getResponse(c *gin.Context, endpoint string) {
@@ -156,6 +200,7 @@ func getResponse(c *gin.Context, endpoint string) {
 		log.Printf("waiting %v seconds before responding...", timeout)
 		time.Sleep(time.Duration(timeout) * time.Second)
 	}
+
 	c.String(code, r.Body)
 }
 
